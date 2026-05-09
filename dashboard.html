@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - SISTec IoT Application 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <nav class="bg-blue-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">SISTec IoT Application 2026</h1>
+      <span>Welcome, {{username}}</span>
+    </div>
+  </nav>
+  <div class="container mx-auto p-4">
+    <h2 class="text-2xl mb-4">Dashboard</h2>
+    
+    <!-- Section 1 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Latest Temperature</h3>
+        <p id="temp" class="text-4xl font-bold">Loading...</p>
+        <p id="temp-time" class="text-sm text-gray-600"></p>
+      </div>
+      <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Latest Humidity</h3>
+        <p id="hum" class="text-4xl font-bold">Loading...</p>
+        <p id="hum-time" class="text-sm text-gray-600"></p>
+      </div>
+    </div>
+    
+    <!-- Section 2 -->
+    <div class="bg-white p-6 rounded shadow mb-8">
+      <h3 class="text-lg font-semibold mb-2">LCD Text Input</h3>
+      <form id="text-form">
+        <textarea id="text-input" maxlength="16" class="w-full px-3 py-2 border rounded mb-2" placeholder="Enter text (max 16 chars)"></textarea>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+      </form>
+    </div>
+    
+    <!-- Section 3 -->
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Sensor Records</h3>
+      <table class="w-full table-auto">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="px-4 py-2">#</th>
+            <th class="px-4 py-2">Temperature</th>
+            <th class="px-4 py-2">Humidity</th>
+            <th class="px-4 py-2">Time</th>
+            <th class="px-4 py-2">Date</th>
+            <th class="px-4 py-2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="records-table">
+          <!-- Records will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Load latest data
+    fetch('/api/latest')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('temp').textContent = data.temp;
+        document.getElementById('hum').textContent = data.hum;
+        document.getElementById('temp-time').textContent = data.time + ' ' + data.date;
+        document.getElementById('hum-time').textContent = data.time + ' ' + data.date;
+      });
+
+    // Load records
+    function loadRecords() {
+      fetch('/api/records')
+        .then(res => res.json())
+        .then(records => {
+          const tbody = document.getElementById('records-table');
+          tbody.innerHTML = '';
+          records.forEach(record => {
+            const row = `<tr>
+              <td class="px-4 py-2">${record.num}</td>
+              <td class="px-4 py-2">${record.temp}</td>
+              <td class="px-4 py-2">${record.hum}</td>
+              <td class="px-4 py-2">${record.time}</td>
+              <td class="px-4 py-2">${record.date}</td>
+              <td class="px-4 py-2"><button onclick="deleteRecord(${record.id})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+          });
+        });
+    }
+    loadRecords();
+
+    // Submit text
+    document.getElementById('text-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const text = document.getElementById('text-input').value;
+      fetch('/api/save-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      }).then(() => alert('Saved'));
+    });
+
+    // Delete record
+    function deleteRecord(id) {
+      fetch(`/api/delete/${id}`, { method: 'DELETE' })
+        .then(() => loadRecords());
+    }
+  </script>
+</body>
+</html>
