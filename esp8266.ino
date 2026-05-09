@@ -9,7 +9,7 @@ const char* ssid = "ABC";
 const char* password = "qwertyuiop";
 
 // Server URL (replace with your Render URL)
-const char* serverUrl = "https://your-render-app-url.onrender.com";
+const char* serverUrl = "https://iot-vgjm.onrender.com";
 
 // DHT
 #define DHTPIN D5
